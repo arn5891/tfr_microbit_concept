@@ -1,19 +1,38 @@
 from microbit import *
 import radio
 from cutebot import *
+from time import *
 
+v = 0
+ch = 1
+itvl = 90#30 to 90 ms w 30 ms intervals
+switchtime = ticks_add(ticks_ms(), itvl)
+auto = False
+radio.config(group=ch)
 radio.on()
-radio.config(group=1)
 radio.config(power=1)
-d = False
 while True:
-    m = str(radio.receive())
-    if m == "1":
-        d = True
-    elif m == "0":
-        d = False
-    display.show(m)
-    if d:
-        set_motors_speed(100,100)
-    else:
-        set_motors_speed(0,0)
+    if ch == 1:
+        m = radio.receive()
+        display.show(str(m), delay=0, wait=False)
+        if m is not None:
+            v = int(str(m))*25
+        else:
+            v = 0
+        if ticks_ms() >= switchtime:
+            switchtime = ticks_add(ticks_ms(), itvl)
+            ch = 2
+            radio.config(group=ch)
+    elif ch == 2:
+        m = radio.receive()
+        display.show(str(m), delay=0, wait=False)
+        if m is not None:
+            auto = False
+        if not auto:
+            if ticks_ms() >= switchtime:
+                switchtime = ticks_add(ticks_ms(), itvl)
+                ch = 1
+                radio.config(group=ch)
+        #else:
+        #    v = 0
+    set_motors_speed(v,v)
