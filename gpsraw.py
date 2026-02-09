@@ -4,7 +4,7 @@ import log
 uart.init(baudrate=9600, tx = pin19, rx = pin20)
 
 states = {}
-
+a = True
 def release(obj):
     if obj == button_a:
         t = "a"
@@ -24,3 +24,6 @@ while(True):
         msg = str(uart.read())
     if release(button_a):
         log.add({"test":msg})
+        a = not a
+    if a:
+        display.show("A")
