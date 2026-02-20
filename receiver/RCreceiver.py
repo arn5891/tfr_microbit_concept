@@ -38,7 +38,7 @@ def release(obj):
 #setup
 auton = False
 start = False
-v = 0
+volt = 0
 m = None
 ch = 1
 switchtime = 0
@@ -84,7 +84,7 @@ while(auton is not True):
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch1)
             start = True
         else:
-            v = int(m is not None and auton is not True)*25
+            volt = int(m is not None and auton is not True)*25
         if time.ticks_ms() >= switchtime:
             ch = 2
             radio.config(group = ch)
@@ -113,7 +113,7 @@ while(auton is not True):
             log.add({"Distance traveled when triggered(m)":nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(init_loc["lat"],init_loc["lon"]))})
             log.add({"Distance from TFR when triggered(m)":d})
             log.add({"Avoidance success":nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(i["lat"],i["lon"])) > d})
-            v = 0
+            volt = 0
             auton = True
-    cutebot.set_motors_speed(v,v)
+    cutebot.set_motors_speed(volt,volt)
 
