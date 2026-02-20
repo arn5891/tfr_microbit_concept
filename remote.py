@@ -29,10 +29,10 @@ while True:
     if release(button_b):
         stp = not stp    
     if stp:
-        radio.send("0")
+        radio.send(b'0')
         display.show('0')
     elif go:
-        radio.send("1")
+        radio.send(b'1')
         display.show('1')
     else:
         display.clear()
