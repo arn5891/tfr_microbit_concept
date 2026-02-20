@@ -79,6 +79,8 @@ while(auton is not True):
     if ch == 1:
         if not start and m is not None:
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch1)
+            log.add({"ch1(ms)":itvl_ch1})
+            log.add({"ch2(ms)":itvl_ch2})
             start = True
         else:
             v = int(m is not None and auton is not True)*25
