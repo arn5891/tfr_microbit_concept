@@ -83,7 +83,7 @@ while(auton is not True):
             log.add({"ch2(ms)":itvl_ch2})
             start = True
         else:
-            v = int(m is not None and auton is not True)*25
+            v = int(m is not None and auton is not True)*(int(str(m)))*25
         if time.ticks_ms() >= switchtime:
             ch = 2
             radio.config(group = ch)
