@@ -5,13 +5,17 @@ import log
 import radio
 import time
 
+uart.init(baudrate=9600, tx = pin19, rx = pin20)
+    
 def update_loc(v):
     if uart.any():
+        uart.init(115200)
+        uart.init(baudrate=9600, tx = pin19, rx = pin20)
         uart_msg = str(uart.read())
         if "GPGGA" in uart_msg:
-            uart.init(115200)
             sntc = nmeaparser.parse(uart_msg, "GPGGA")
-            print(sntc)
+            uart.init(115200)
+            print(uart_msg)
             uart.init(baudrate=9600, tx = pin19, rx = pin20)
             if sntc is not None:
                 return {"lat":[sntc[1], sntc[2]],"lon":[sntc[3], sntc[4]]}
@@ -55,7 +59,6 @@ display.set_pixel(4,itvl_ch2//30-1,9)
 radio.config(group = ch)
 radio.on()
 radio.config(power = 1)
-uart.init(baudrate=9600, tx = pin19, rx = pin20)
 
 
 while(auton is not True):
@@ -74,16 +77,14 @@ while(auton is not True):
     cur_loc = update_loc(cur_loc)
     cl_dd = nmeaparser.dec_deg(cur_loc["lat"],cur_loc["lon"])
     
-    m = radio.receive()
+    m = radio.receive_bytes()
     
     if ch == 1:
         if not start and m is not None:
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch1)
-            log.add({"ch1(ms)":itvl_ch1})
-            log.add({"ch2(ms)":itvl_ch2})
             start = True
         else:
-            v = int(m is not None and auton is not True)*(int(str(m)))*25
+            v = int(m is not None and auton is not True)*25
         if time.ticks_ms() >= switchtime:
             ch = 2
             radio.config(group = ch)
@@ -94,7 +95,9 @@ while(auton is not True):
             tfrdata = nmeaparser.parse(m,"TFR")
             #$TFR_[radius in m]_[ddmm.mmmm]_[N/S]_[dddmm.mmmm]_[E/W]*[no checksum]
             if tfrdata is not None:
-                tfr = {({"lat":(tfrdata[1],tfrdata[2])},{"lon":(tfrdata[3],tfrdata[4])}):tfrdata[0]}
+                tfrlat = (tfrdata[1],tfrdata[2])
+                tfrlon = (tfrdata[3],tfrdata[4])
+                tfr = {(tfrlat,tfrlon):tfrdata[0]}
                 if len(tfr_bank)==0:
                     log.add({"Time to first packet(ms)":time.ticks_ms()})
                     tfr_bank.update(tfr)
