@@ -8,4 +8,4 @@ radio.config(power=1)
 while True:
     display.show("T")
     msg = b"$TFR_[radius in m]_[ddmm.mmmm]_[N/S]_[dddmm.mmmm]_[E/W]*"
-    radio.send(msg)
+    radio.send_bytes(msg)
