@@ -5,18 +5,18 @@ import log
 import radio
 import time
 
-uart.init(baudrate=9600, tx = pin19, rx = pin20)
+uart.init(baudrate=9600, tx = pin1, rx = pin2)
     
 def update_loc(v):
     if uart.any():
         uart.init(115200)
-        uart.init(baudrate=9600, tx = pin19, rx = pin20)
+        uart.init(baudrate=9600, tx = pin1, rx = pin2)
         uart_msg = str(uart.read())
         if "GPGGA" in uart_msg:
             sntc = nmeaparser.parse(uart_msg, "GPGGA")
             uart.init(115200)
             print(uart_msg)
-            uart.init(baudrate=9600, tx = pin19, rx = pin20)
+            uart.init(baudrate=9600, tx = pin1, rx = pin2)
             if sntc is not None:
                 return {"lat":[sntc[1], sntc[2]],"lon":[sntc[3], sntc[4]]}
     return v
@@ -87,7 +87,7 @@ while(auton is not True):
             if auton is True or m == b'0':
                 volt = 0
             elif m == b'1':
-                volt = 25
+                volt = 80
         if time.ticks_ms() >= switchtime:
             ch = 2
             radio.config(group = ch)
