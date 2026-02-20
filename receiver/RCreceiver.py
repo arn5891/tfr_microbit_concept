@@ -56,8 +56,8 @@ display.set_pixel(0,itvl_ch1//30-1,9)
 display.set_pixel(4,itvl_ch2//30-1,9)
 
 #config
-radio.config(group = ch)
 radio.on()
+radio.config(group = ch)
 radio.config(power = 1)
 
 
@@ -80,11 +80,14 @@ while(auton is not True):
     m = radio.receive_bytes()
     
     if ch == 1:
-        if not start and m is not None:
+        if not start and m == b'1':
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch1)
             start = True
         else:
-            volt = int(m is not None and auton is not True)*25
+            if auton is True or m == b'0':
+                volt = 0
+            elif m == b'1':
+                volt = 25
         if time.ticks_ms() >= switchtime:
             ch = 2
             radio.config(group = ch)
@@ -115,5 +118,7 @@ while(auton is not True):
             log.add({"Avoidance success":nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(i["lat"],i["lon"])) > d})
             volt = 0
             auton = True
+            display.clear()
+            display.show(Image.SAD)
     cutebot.set_motors_speed(volt,volt)
 
