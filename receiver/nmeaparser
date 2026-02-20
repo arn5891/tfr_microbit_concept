@@ -1,6 +1,6 @@
 import math
 
-def parse(b,_id, delim = "_"):
+def parse(b,_id, delim = ","):
     if "$"+_id+delim in b:
         b = str(b)
         b = b[b.find("$"+_id+delim)+len("$"+_id+delim):]
