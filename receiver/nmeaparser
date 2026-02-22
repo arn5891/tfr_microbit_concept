@@ -1,20 +1,20 @@
 import math
 
 def parse(b,_id, delim = ","):
+    c = str(b)
     if "$"+_id+delim in b:
-        b = str(b)
-        b = b[b.find("$"+_id+delim)+len("$"+_id+delim):]
-        if '*' in b:
-            b = b[:b.find('*')]
-            return b.split(delim)
+        d = c[c.find("$"+_id+delim)+len("$"+_id+delim):]
+        if '*' in d:
+            e = d[:d.find('*')+1]
+            return e.split(delim)
         else:
             return None
     else:
         return None
 
 def dec_deg(lat,lon):
-    nulat = (float(lat[0][:2])+(float(lat[0][2:])/60)) * (-1.0 if (lat[1] == "S") else 1.0)
-    nulon = (float(lon[0][:3])+(float(lon[0][3:])/60)) * (-1.0 if (lon[1] == "W") else 1.0)
+    nulat = (float(lat[0][:2])+(float(lat[0][2:])/60.0)) * (-1.0 if (lat[1] == "S") else 1.0)
+    nulon = (float(lon[0][:3])+(float(lon[0][3:])/60.0)) * (-1.0 if (lon[1] == "W") else 1.0)
     return [nulat, nulon]
 
 #haversine formula
