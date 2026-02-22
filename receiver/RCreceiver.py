@@ -117,7 +117,7 @@ while(auton is not True):
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch1)
 
     for i, j in tfr_bank:
-        d = nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(i["lat"],i["lon"]))
+        d = nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(i[0],i[1]))
         if d < j+1:
             log.add({"Time triggered(ms)":time.ticks_ms()})
             log.add({"Distance traveled when triggered(m)":nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(init_loc["lat"],init_loc["lon"]))})
