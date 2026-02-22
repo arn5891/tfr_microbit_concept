@@ -92,7 +92,7 @@ while(auton is not True):
                 volt = 0
             elif m == b'1':
                 volt = 80
-        if time.ticks_ms() >= switchtime:
+        if start and time.ticks_ms() >= switchtime:
             display.show("2")
             ch = 2
             radio.config(group = ch)
@@ -129,4 +129,3 @@ while(auton is not True):
             display.clear()
             display.show(Image.SAD)
     cutebot.set_motors_speed(volt,volt)
-
