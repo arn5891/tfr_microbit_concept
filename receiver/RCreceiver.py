@@ -47,10 +47,12 @@ itvl_ch2 = 30
 tfr_bank = {}
 uart_msg = ""
 init_loc = None
+
 while init_loc is None:
     init_loc = update_loc(init_loc)
 cur_loc = {"lat":init_loc["lat"],"lon":init_loc["lon"]}
 cl_dd = None
+
 #display listening intervals- A side for ch1(remote), B side for ch2(TX)
 display.set_pixel(0,itvl_ch1//30-1,9)
 display.set_pixel(4,itvl_ch2//30-1,9)
@@ -82,6 +84,8 @@ while(auton is not True):
     if ch == 1:
         if not start and m == b'1':
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch1)
+            log.add({"intervals(ms, 1-2)":str(itvl_ch1)+","+str(itvl_ch2)})
+            display.show("1")
             start = True
         else:
             if auton is True or m == b'0':
@@ -89,6 +93,7 @@ while(auton is not True):
             elif m == b'1':
                 volt = 80
         if time.ticks_ms() >= switchtime:
+            display.show("2")
             ch = 2
             radio.config(group = ch)
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch2)
@@ -96,6 +101,7 @@ while(auton is not True):
     elif ch == 2:
         if m is not None:
             tfrdata = nmeaparser.parse(m,"TFR")
+            log.add({"tfr hit":str(tfrdata)})
             #$TFR_[radius in m]_[ddmm.mmmm]_[N/S]_[dddmm.mmmm]_[E/W]*[no checksum]
             if tfrdata is not None:
                 tfrlat = (tfrdata[1],tfrdata[2])
@@ -105,6 +111,7 @@ while(auton is not True):
                     log.add({"Time to first packet(ms)":time.ticks_ms()})
                     tfr_bank.update(tfr)
         if time.ticks_ms() >= switchtime:
+            display.show("1")
             ch = 1
             radio.config(group = ch)
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch1)
