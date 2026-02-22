@@ -5,7 +5,7 @@ def parse(b,_id, delim = ","):
         b = str(b)
         b = b[b.find("$"+_id+delim)+len("$"+_id+delim):]
         if '*' in b:
-            b = b[:b.find('*')+1]
+            b = b[:b.find('*')]
             return b.split(delim)
         else:
             return None
@@ -26,7 +26,7 @@ def hav_formula(p1,p2, km = False):
     phi_2 = math.radians(lat2)
     delta_phi = math.radians(lat2-lat1)
     delta_lambda = math.radians(lon2-lon1)
-    a = math.sin(delta_phi/2.0)**2+math.cos(phi_1) * math.cos(phi_2) * math.sin(delta_lambda/2.0)**2
+    a = math.sin(delta_phi/2.0)**2 + math.cos(phi_1) * math.cos(phi_2) * math.sin(delta_lambda/2.0)**2
     c = 2*math.atan2(math.sqrt(a), math.sqrt(1-a))
     m = R*c
     return m/1000 if km else m
