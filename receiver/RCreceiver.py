@@ -15,7 +15,6 @@ def update_loc(v):
         if "GPGGA" in uart_msg:
             sntc = nmeaparser.parse(uart_msg, "GPGGA")
             uart.init(115200)
-            print(uart_msg)
             uart.init(baudrate=9600, tx = pin1, rx = pin2)
             if sntc is not None:
                 return {"lat":[sntc[1], sntc[2]],"lon":[sntc[3], sntc[4]]}
@@ -50,6 +49,7 @@ init_loc = None
 
 while init_loc is None:
     init_loc = update_loc(init_loc)
+il_dd = nmeaparser.dec_deg(init_loc["lat"],init_loc["lon"])
 cur_loc = {"lat":init_loc["lat"],"lon":init_loc["lon"]}
 cl_dd = None
 
@@ -106,7 +106,8 @@ while(auton is not True):
             if tfrdata is not None:
                 tfrlat = (tfrdata[1],tfrdata[2])
                 tfrlon = (tfrdata[3],tfrdata[4])
-                tfr = {(tfrlat,tfrlon):tfrdata[0]}
+                tfr_dd = nmeaparser.dec_deg(tfrlat,tfrlon)
+                tfr = {"_".join(tfr_dd):tfrdata[0]}
                 if len(tfr_bank)==0:
                     log.add({"Time to first packet(ms)":time.ticks_ms()})
                     tfr_bank.update(tfr)
@@ -117,12 +118,12 @@ while(auton is not True):
             switchtime = time.ticks_add(time.ticks_ms(),itvl_ch1)
 
     for i, j in tfr_bank:
-        d = nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(i[0],i[1]))
+        d = nmeaparser.hav_formula(cl_dd,i.split("_"))
         if d < j+1:
             log.add({"Time triggered(ms)":time.ticks_ms()})
-            log.add({"Distance traveled when triggered(m)":nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(init_loc["lat"],init_loc["lon"]))})
+            log.add({"Distance traveled when triggered(m)":nmeaparser.hav_formula(cl_dd,il_dd)})
             log.add({"Distance from TFR when triggered(m)":d})
-            log.add({"Avoidance success":nmeaparser.hav_formula(cl_dd,nmeaparser.dec_deg(i["lat"],i["lon"])) > d})
+            log.add({"Avoidance success":nmeaparser.hav_formula(cl_dd,il_dd) > d})
             volt = 0
             auton = True
             display.clear()
