@@ -1,9 +1,6 @@
 from microbit import *
 import nmeaparser
-import cutebot
 import log
-import radio
-import time
 
 uart.init(baudrate=9600, tx = pin1, rx = pin2)
 states = {}
@@ -29,7 +26,7 @@ def update_loc(v):
         if "GPGGA" in uart_msg:
             sntc = nmeaparser.parse(uart_msg, "GPGGA")
             if sntc is not None:
-                return "TFR$"+",1,"+",".join(sntc[1:5])+"*"
+                return "$TFR"+",1,"+",".join(sntc[1:5])+"*"
     return v
 
 #setup
