@@ -3,6 +3,12 @@ import nmeaparser
 import log
 
 uart.init(baudrate=9600, tx = pin1, rx = pin2)
+
+def bprint(s):
+    uart.init(115200)
+    print(str(s)+"\n")
+    uart.init(baudrate=9600, tx = pin1, rx = pin2)
+
 states = {}
 
 def release(obj):
@@ -20,13 +26,14 @@ def release(obj):
     
 def update_loc(v):
     if uart.any():
-        uart.init(115200)
-        uart.init(baudrate=9600, tx = pin1, rx = pin2)
         uart_msg = str(uart.read())
         if "GPGGA" in uart_msg:
+            log.add({".":uart_msg})
             sntc = nmeaparser.parse(uart_msg, "GPGGA")
-            if sntc is not None:
-                return "$TFR"+",1,"+",".join(sntc[1:5])+"*"
+            bprint(sntc)
+            if nmeaparser.BAD_MSG != sntc:
+                if sntc[5] != "0":
+                    return "$TFR"+",1,"+",".join(sntc[1:5])+"*"
     return v
 
 #setup
