@@ -1,19 +1,20 @@
 import math
-
+BAD_MSG = ["?"]
+DIG="1234567890"
 def parse(b,_id, delim = ","):
-    c = str(b)
     if "$"+_id+delim in b:
-        d = c[c.find("$"+_id+delim)+len("$"+_id+delim):]
-        if '*' in d:
-            e = d[:d.find('*')+1]
-            return e.split(delim)
+        b = b[b.find("$"+_id+delim)+len("$"+_id+delim):]
+        if '*' in b:
+            b = b[:b.find('*')]
+            b = b.split(delim)
+            return b
         else:
-            return None
+            return BAD_MSG
     else:
-        return None
+        return BAD_MSG
 
 def dec_deg(lat,lon):
-    nulat = (float(lat[0][:2])+(float(lat[0][2:])/60.0)) * (-1.0 if (lat[1] == "S") else 1.0)
+    nulat = (float(lat[0][:2])+(float(lat[0][2:])/60.0)) * (-1.0 if (lat[1] == "S") else 1.0)  
     nulon = (float(lon[0][:3])+(float(lon[0][3:])/60.0)) * (-1.0 if (lon[1] == "W") else 1.0)
     return [nulat, nulon]
 
