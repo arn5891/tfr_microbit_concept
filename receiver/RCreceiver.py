@@ -4,6 +4,8 @@ import cutebot
 import log
 import radio
 import time
+import math
+import music
 
 uart.init(baudrate=9600, tx = pin1, rx = pin2)
 
@@ -14,15 +16,15 @@ def bprint(s):
             
 def update_loc(v):
     if uart.any():
-        uart_msg = str(uart.read())
-        if "GPGGA" in uart_msg:
-            sntc = nmeaparser.parse(uart_msg, "GPGGA")
-            if nmeaparser.BAD_MSG != sntc:
-                #bprint(sntc)
-                if sntc[5] != "0":
-                    bprint("ok")
-                    return {"lat":[sntc[1], sntc[2]],"lon":[sntc[3], sntc[4]]}
-    #bprint("fail")
+        uart_msg = str(uart.read()) 
+        lines = uart_msg.split('$')
+        for line in reversed(lines):
+            if "GPGGA" in line:
+                sntc = nmeaparser.parse("$" + line, "GPGGA")
+                if sntc != nmeaparser.BAD_MSG:
+                    if sntc[5] != "0":
+                        return {"lat":[sntc[1], sntc[2]], "lon":[sntc[3], sntc[4]]}
+                break
     return v
 
 def update_tfr(m):
@@ -38,6 +40,7 @@ def update_tfr(m):
     if tfr is not nmeaparser.BAD_MSG and not tfr in tfr_bank:
         log.add({"Time to first packet(ms)":time.ticks_ms()-starttime})
         tfr_bank.append(tfr)
+        #bprint("yay")
 
 states = {}
 def release(obj):
@@ -54,8 +57,9 @@ def release(obj):
     return r
 
 #setup
-ERROR_MARGIN = 0
-MAX_SPEED = 80
+ERROR_MARGIN = 0#1.525097
+error_sum = 0
+MAX_SPEED = 40
 BUFFER = 1
 auton = False
 end = False
@@ -69,6 +73,7 @@ switchtime = 0
 itvl_ch1 = 30
 itvl_ch2 = 30
 tfr_bank = []
+maintfr = None
 uart_msg = ""
 init_loc = None
 while init_loc is None:
@@ -76,6 +81,19 @@ while init_loc is None:
 il_dd = nmeaparser.dec_deg(init_loc["lat"],init_loc["lon"])
 cur_loc = {"lat":init_loc["lat"],"lon":init_loc["lon"]}
 cl_dd = nmeaparser.dec_deg(cur_loc["lat"],cur_loc["lon"])
+
+#error margin calculations- only uncomment when gps is booting up
+'''for i in range(20):
+    error = None
+    while error is None:
+        error = update_loc(None)
+    e_dd = nmeaparser.dec_deg(error["lat"],error["lon"])
+    e_dist = nmeaparser.hav_formula(il_dd, e_dd)
+    error_sum = e_dist**2 + error_sum
+    bprint(i)
+ERROR_MARGIN = math.sqrt((1/20)*error_sum)
+bprint("error margin"+str(ERROR_MARGIN))
+'''
 
 #display listening intervals- A side for ch1(remote), B side for ch2(TX)
 display.set_pixel(0,itvl_ch1//30-1,9)
@@ -99,6 +117,7 @@ while start is not True:
         display.clear()
         display.set_pixel(0,itvl_ch1//30-1,9)
         display.set_pixel(4,itvl_ch2//30-1,9)
+    
     rad_msg = radio.receive()
     if rad_msg is not None:
         start = True
@@ -108,31 +127,34 @@ switchtime = time.ticks_add(starttime, itvl_ch1)
 display.clear()
 
 while end is False:
-    display.show(ch)
     #switch channel
-    if time.ticks_ms() >= switchtime and auton is False:
+    if auton is False and time.ticks_ms() >= switchtime:
         ch = 2 if ch==1 else 1
         switchtime = time.ticks_add(time.ticks_ms(),[itvl_ch1,itvl_ch2][ch-1])
         radio.config(group = ch)
+        display.show(ch)
+        #bprint("switch to "+str(ch))
         
-    #attempt to get current location, get radio msgs
-    cur_loc = update_loc(None)
     rad_msg = radio.receive()
-
+    #bprint(rad_msg)
+    #attempt to get current location, get radio msgs
+    cur_loc = update_loc(cur_loc)
+    #bprint(str(cur_loc))
+    
     if ch == 1:
         if rad_msg == "1":
-            accel = 0
-            volt = 80
-        else:
-            accel = -1
+            volt = 40
+        if rad_msg == "0":
+            volt = 0
     if ch == 2:
         if cur_loc is not None:
             cl_dd = nmeaparser.dec_deg(cur_loc["lat"],cur_loc["lon"])
             update_tfr(rad_msg)
             for i in tfr_bank:
-                d = nmeaparser.hav_formula(i[0],cl_dd)-(ERROR_MARGIN*2)
-                #log.add({"dist to tfr(+/- ERROR_MARGIN m) https://forum.arduino.cc/t/accuracy-of-neo6mv2/205205/2":d})
-                if d <= i[1]+BUFFER:
+                d = nmeaparser.hav_formula(i[0],cl_dd)
+                #bprint(d)
+                if d <= (i[1]+BUFFER+ERROR_MARGIN):
+                    #bprint(str(d)+" vs " +str(i[1]+BUFFER+ERROR_MARGIN))
                     display.show(Image.DIAMOND)
                     #data recording
                     if auton is False:
@@ -141,11 +163,17 @@ while end is False:
                         log.add({"Distance traveled when auton triggered(m)":nmeaparser.hav_formula(cl_dd,il_dd)})
                         log.add({"Distance from TFR when auton triggered(m)":d})
                     auton = True
-                    MAX_SPEED = 80*((d-i[1])/BUFFER)
-    
-    volt = volt + accel
-    volt = min(volt, MAX_SPEED)
-    if volt <= 2:
-        volt = 0
-        end = True
-    cutebot.set_motors_speed(round(volt),round(volt))
+                    volt = 0
+                    end = True
+                    #maintfr = i
+                    break
+
+            '''if auton is True and maintfr is not None:
+                dtoborder = nmeaparser.hav_formula(maintfr[0],cl_dd)-(ERROR_MARGIN*2)-maintfr[1]
+                a = accelerometer.get_z() * 0.00980665
+                volt = round(math.sqrt((volt*volt)+(2*a*dtoborder)))
+                if volt < 5:
+                    volt = 0
+                    end = True'''
+    #bprint(str(ch)+str(auton)+str(volt))
+    cutebot.set_motors_speed(volt,volt)
