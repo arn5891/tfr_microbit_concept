@@ -7,7 +7,13 @@ def parse(b,_id, delim = ","):
         if '*' in b:
             b = b[:b.find('*')]
             b = b.split(delim)
-            return b
+            no = False
+            if b[1] == "" or b[2] == "" or b[3] == "" or b[4] == "":
+               no = True
+            if not no:
+                return b
+            else:
+                return BAD_MSG
         else:
             return BAD_MSG
     else:
