@@ -122,9 +122,9 @@ while start is not True:
     if rad_msg is not None:
         start = True
         
+display.clear()
 starttime = time.ticks_ms()
 switchtime = time.ticks_add(starttime, itvl_ch1)
-display.clear()
 
 while end is False:
     #switch channel
