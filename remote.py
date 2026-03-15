@@ -17,9 +17,8 @@ def release(obj):
     return r
     
 radio.on()
-radio.config(group=1)
 radio.config(power=1)
-radio.config(group=1)
+radio.config(channel=1)
 go = False
 stp = False
 
