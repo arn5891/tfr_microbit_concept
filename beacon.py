@@ -3,11 +3,10 @@ import radio
 
 radio.on()
 radio.config(data_rate = radio.RATE_2MBIT)
-radio.config(channel=2)
-radio.config(power=1)
+radio.config(channel=40)
 radio.config(length=100)
 
 while True:
     display.show("T")
-    msg = '$TFR,[tfr radius in m],[ddmm.mmmm],[N/S],[dddmm.mmmm],[E/W]*'
+    msg = '$TFR,1,3358.29715,N,08411.84840,W*'
     radio.send(msg)
