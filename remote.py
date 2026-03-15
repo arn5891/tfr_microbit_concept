@@ -19,6 +19,7 @@ def release(obj):
 radio.on()
 radio.config(power=1)
 radio.config(channel=1)
+radio.config(data_rate = radio.RATE_2MBIT)
 go = False
 stp = False
 
