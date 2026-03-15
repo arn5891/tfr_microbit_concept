@@ -130,7 +130,7 @@ switchtime = time.ticks_add(starttime, itvl_ch1)
 while end is False:
     #switch channel
     if auton is False and time.ticks_ms() >= switchtime:
-        ch = 2 if ch==1 else 1
+        ch = 40 if ch==1 else 1
         switchtime = time.ticks_add(time.ticks_ms(),[itvl_ch1,itvl_ch2][ch-1])
         radio.config(channel = ch)
         display.show(ch)
@@ -147,7 +147,7 @@ while end is False:
             volt = 40
         if rad_msg == "0":
             volt = 0
-    if ch == 2:
+    if ch == 40:
         if cur_loc is not None:
             cl_dd = nmeaparser.dec_deg(cur_loc["lat"],cur_loc["lon"])
             update_tfr(rad_msg)
