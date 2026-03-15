@@ -101,7 +101,7 @@ display.set_pixel(4,itvl_ch2//30-1,9)
 
 #config
 radio.on()
-radio.config(group = ch)
+radio.config(channel = ch)
 radio.config(power = 1)
 radio.config(length = 100)
 
@@ -131,7 +131,7 @@ while end is False:
     if auton is False and time.ticks_ms() >= switchtime:
         ch = 2 if ch==1 else 1
         switchtime = time.ticks_add(time.ticks_ms(),[itvl_ch1,itvl_ch2][ch-1])
-        radio.config(group = ch)
+        radio.config(channel = ch)
         display.show(ch)
         #bprint("switch to "+str(ch))
         
