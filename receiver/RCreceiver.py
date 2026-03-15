@@ -8,6 +8,19 @@ import math
 import music
 
 uart.init(baudrate=9600, tx = pin1, rx = pin2)
+cmds = [
+b'\xB5\x62\x06\x01\x08\x00\xF0\x01\x00\x00\x00\x00\x00\x00\x00\x28', # GLL off
+b'\xB5\x62\x06\x01\x08\x00\xF0\x02\x00\x00\x00\x00\x00\x00\x01\x2F', # GSA off
+b'\xB5\x62\x06\x01\x08\x00\xF0\x03\x00\x00\x00\x00\x00\x00\x02\x36', # GSV off
+b'\xB5\x62\x06\x01\x08\x00\xF0\x04\x00\x00\x00\x00\x00\x00\x03\x3D', # RMC off
+b'\xB5\x62\x06\x01\x08\x00\xF0\x05\x00\x00\x00\x00\x00\x00\x04\x44', # VTG off
+b'\xB5\x62\x06\x01\x08\x00\xF0\x41\x00\x00\x00\x00\x00\x00\x40\x6D', # TXT off
+b'\xB5\x62\x06\x01\x08\x00\xF0\x00\x01\x00\x00\x00\x00\x00\x00\x24'  # GGA on
+]
+for c in cmds:
+    uart.write(c)
+set_rate_5hz = b'\xB5\x62\x06\x08\x06\x00\xC8\x00\x01\x00\x01\x00\xDE\x6A'
+uart.write(set_rate_5hz)
 
 def bprint(s):
     uart.init(115200)
@@ -37,7 +50,8 @@ def update_tfr(m):
             tfr_dd = nmeaparser.dec_deg(tfrlat,tfrlon)
             radius = tfrdata[0]
             tfr = [tfr_dd,float(radius)]
-    if tfr is not nmeaparser.BAD_MSG and not tfr in tfr_bank:
+    if tfr != nmeaparser.BAD_MSG and not tfr in tfr_bank:
+        display.show("T")
         log.add({"Time to first packet(ms)":time.ticks_ms()-starttime})
         tfr_bank.append(tfr)
         #bprint("yay")
@@ -131,9 +145,9 @@ while end is False:
     #switch channel
     if auton is False and time.ticks_ms() >= switchtime:
         ch = 40 if ch==1 else 1
-        switchtime = time.ticks_add(time.ticks_ms(),[itvl_ch1,itvl_ch2][ch-1])
+        switchtime = time.ticks_add(time.ticks_ms(),[itvl_ch1,itvl_ch2][ch==1])
         radio.config(channel = ch)
-        display.show(ch)
+        #display.show(int(ch==40))
         #bprint("switch to "+str(ch))
         
     rad_msg = radio.receive()
