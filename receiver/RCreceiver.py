@@ -104,6 +104,7 @@ radio.on()
 radio.config(channel = ch)
 radio.config(power = 1)
 radio.config(length = 100)
+radio.config(data_rate = radio.RATE_2MBIT)
 
 while start is not True:
     #set intervals
