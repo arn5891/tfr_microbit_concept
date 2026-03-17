@@ -71,7 +71,7 @@ def release(obj):
     return r
 
 #setup
-ERROR_MARGIN = 0#1.525097
+ERROR_MARGIN = 0
 error_sum = 0
 MAX_SPEED = 40
 BUFFER = 1
@@ -96,18 +96,21 @@ il_dd = nmeaparser.dec_deg(init_loc["lat"],init_loc["lon"])
 cur_loc = {"lat":init_loc["lat"],"lon":init_loc["lon"]}
 cl_dd = nmeaparser.dec_deg(cur_loc["lat"],cur_loc["lon"])
 
-#error margin calculations- only uncomment when gps is booting up
-'''for i in range(20):
+#error margin calculations
+rng = 20
+for i in range(rng):
     error = None
     while error is None:
         error = update_loc(None)
     e_dd = nmeaparser.dec_deg(error["lat"],error["lon"])
     e_dist = nmeaparser.hav_formula(il_dd, e_dd)
     error_sum = e_dist**2 + error_sum
-    bprint(i)
-ERROR_MARGIN = math.sqrt((1/20)*error_sum)
+    display.clear()
+    for j in range(round((i+1)/rng*5)):
+        display.set_pixel(j,0,9)
+ERROR_MARGIN = math.sqrt((1/(rng-1))*error_sum)
 bprint("error margin"+str(ERROR_MARGIN))
-'''
+display.clear()
 
 #display listening intervals- A side for ch1(remote), B side for ch2(TX)
 display.set_pixel(0,itvl_ch1//30-1,9)
@@ -167,7 +170,7 @@ while end is False:
             update_tfr(rad_msg)
             for i in tfr_bank:
                 d = nmeaparser.hav_formula(i[0],cl_dd)
-                #bprint(d)
+                bprint(d)
                 if d <= (i[1]+BUFFER+ERROR_MARGIN):
                     #bprint(str(d)+" vs " +str(i[1]+BUFFER+ERROR_MARGIN))
                     display.show(Image.DIAMOND)
