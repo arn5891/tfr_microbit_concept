@@ -39,16 +39,17 @@ def release(obj):
     
 def update_loc(v):
     if uart.any():
-        uart_msg = str(uart.read())
-        if "GPGGA" in uart_msg:
-            log.add({".":uart_msg})
-            sntc = nmeaparser.parse(uart_msg, "GPGGA")
-            bprint(sntc)
-            if nmeaparser.BAD_MSG != sntc:
-                if sntc[5] != "0":
-                    return "$TFR"+",1,"+",".join(sntc[1:5])+"*"
+        uart_msg = str(uart.read()) 
+        lines = uart_msg.split('$')
+        for line in reversed(lines):
+            if "GPGGA" in line:
+                sntc = nmeaparser.parse("$" + line, "GPGGA")
+                if sntc != nmeaparser.BAD_MSG:
+                    if sntc[5] != "0":
+                        return "$TFR"+",1,"+",".join(sntc[1:5])+"*"
+                break
     return v
-
+    
 #setup
 auton = False
 start = False
@@ -71,6 +72,7 @@ while(True):
         c_loc = None
         while c_loc is None:
             c_loc = update_loc(c_loc)
-        log.add({"custom NMEA":str(c_loc)})
+        bprint(str(c_loc))
+        log.add({"msg":c_loc})
         display.show(Image.DIAMOND)
-        count+=1
+        
