@@ -8,5 +8,5 @@ radio.config(length=100)
 
 while True:
     display.show("T")
-    msg = '$TFR,1,3358.29715,N,08411.84840,W*'
+    msg = '$TFR,[radius],[ddmm.mmmm],[N/S],[dddmm.mmmm],[E/W]*'
     radio.send(msg)
