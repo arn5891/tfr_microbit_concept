@@ -1,23 +1,25 @@
 import math
+from microbit import *
 BAD_MSG = ["?"]
 DIG="1234567890"
-def parse(b,_id, delim = ","):
-    if "$"+_id+delim in b:
-        b = b[b.find("$"+_id+delim)+len("$"+_id+delim):]
-        if '*' in b:
-            b = b[:b.find('*')]
-            b = b.split(delim)
-            no = False
-            if b[1] == "" or b[2] == "" or b[3] == "" or b[4] == "":
+uart.init(baudrate=9600, tx = pin1, rx = pin2)
+
+def parse(_id, delim = ","):
+    done = False
+    sent = ""
+    while !done:
+        if uart.any():
+            rd = uart.read()
+            if sent == "" and "$"+_id in rd:
+                sent = rd[rd.find("$"+_id+delim)+len("$"+_id+delim):]
+            if sent != "" and "*" in sent:
+                sent = rd[:rd.find("*")
+                done = True
+    ret = sent.split(delim)
+    no = False
+    if ret[1] == "" or ret[2] == "" or ret[3] == "" or ret[4] == "":
                no = True
-            if not no:
-                return b
-            else:
-                return BAD_MSG
-        else:
-            return BAD_MSG
-    else:
-        return BAD_MSG
+    return BAD_MSG if no else sent
 
 def dec_deg(lat,lon):
     nulat = (float(lat[0][:2])+(float(lat[0][2:])/60.0)) * (-1.0 if (lat[1] == "S") else 1.0)  
