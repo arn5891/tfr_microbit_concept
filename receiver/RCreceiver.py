@@ -7,43 +7,25 @@ import time
 import math
 import music
 
-uart.init(baudrate=9600, tx = pin1, rx = pin2)
-cmds = [
-b'\xB5\x62\x06\x01\x08\x00\xF0\x01\x00\x00\x00\x00\x00\x00\x00\x28', # GLL off
-b'\xB5\x62\x06\x01\x08\x00\xF0\x02\x00\x00\x00\x00\x00\x00\x01\x2F', # GSA off
-b'\xB5\x62\x06\x01\x08\x00\xF0\x03\x00\x00\x00\x00\x00\x00\x02\x36', # GSV off
-b'\xB5\x62\x06\x01\x08\x00\xF0\x04\x00\x00\x00\x00\x00\x00\x03\x3D', # RMC off
-b'\xB5\x62\x06\x01\x08\x00\xF0\x05\x00\x00\x00\x00\x00\x00\x04\x44', # VTG off
-b'\xB5\x62\x06\x01\x08\x00\xF0\x41\x00\x00\x00\x00\x00\x00\x40\x6D', # TXT off
-b'\xB5\x62\x06\x01\x08\x00\xF0\x00\x01\x00\x00\x00\x00\x00\x00\x24'  # GGA on
-]
-for c in cmds:
-    uart.write(c)
-set_rate_5hz = b'\xB5\x62\x06\x08\x06\x00\xC8\x00\x01\x00\x01\x00\xDE\x6A'
-uart.write(set_rate_5hz)
-
 def bprint(s):
     uart.init(115200)
     print(str(s)+"\n")
     uart.init(baudrate=9600, tx = pin1, rx = pin2)
-            
+
+
+
 def update_loc(v):
-    if uart.any():
-        uart_msg = str(uart.read()) 
-        lines = uart_msg.split('$')
-        for line in reversed(lines):
-            if "GPGGA" in line:
-                sntc = nmeaparser.parse("$" + line, "GPGGA")
-                if sntc != nmeaparser.BAD_MSG:
-                    if sntc[5] != "0":
-                        return {"lat":[sntc[1], sntc[2]], "lon":[sntc[3], sntc[4]]}
-                break
+    sntc = nmeaparser.parse("GPGGA")
+    bad = ret[1] == "" or ret[2] == "" or ret[3] == "" or ret[4] == ""
+    if not bad:
+        if sntc[5] != "0":
+            return {"lat":[sntc[1], sntc[2]], "lon":[sntc[3], sntc[4]]}
     return v
 
 def update_tfr(m):
     tfr = nmeaparser.BAD_MSG
     if m is not None:
-        tfrdata = nmeaparser.parse(m, "TFR")
+        tfrdata = nmeaparser.parse("TFR", otherinput = m)
         if tfrdata != nmeaparser.BAD_MSG:
             tfrlat = [tfrdata[1],tfrdata[2]]
             tfrlon = [tfrdata[3],tfrdata[4]]
@@ -109,7 +91,7 @@ for i in range(rng):
     for j in range(round((i+1)/rng*5)):
         display.set_pixel(j,0,9)
 ERROR_MARGIN = math.sqrt((1/(rng-1))*error_sum)
-bprint("error margin"+str(ERROR_MARGIN))
+#bprint("error margin"+str(ERROR_MARGIN))
 display.clear()
 
 #display listening intervals- A side for ch1(remote), B side for ch2(TX)
@@ -170,7 +152,7 @@ while end is False:
             update_tfr(rad_msg)
             for i in tfr_bank:
                 d = nmeaparser.hav_formula(i[0],cl_dd)
-                bprint(d)
+                #bprint(d)
                 if d <= (i[1]+BUFFER+ERROR_MARGIN):
                     #bprint(str(d)+" vs " +str(i[1]+BUFFER+ERROR_MARGIN))
                     display.show(Image.DIAMOND)
