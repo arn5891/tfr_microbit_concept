@@ -4,16 +4,17 @@ BAD_MSG = ["?"]
 DIG="1234567890"
 uart.init(baudrate=9600, tx = pin1, rx = pin2)
 
-def parse(_id, otherinput = None delim = ","):
+def parse(_id, otherinput = None, delim = ","):
     done = False
     sent = ""
-    while !done:
+    while not done:
         if uart.any() or otherinput != None:
             rd = uart.read() if otherinput == None else otherinput
+            rd = str(rd)
             if sent == "" and "$"+_id in rd:
                 sent = rd[rd.find("$"+_id+delim)+len("$"+_id+delim):]
             if (sent != "" and "*" in sent) or otherinput != None:
-                sent = rd[:rd.find("*")
+                sent = rd[:rd.find("*")]
                 done = True
     ret = sent.split(delim)
     return sent
