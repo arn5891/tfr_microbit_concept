@@ -16,8 +16,7 @@ def bprint(s):
 
 def update_loc(v):
     sntc = nmeaparser.parse("GPGGA")
-    bad = ret[1] == "" or ret[2] == "" or ret[3] == "" or ret[4] == ""
-    if not bad:
+    bad = sntc[1] == "" or sntc[2] == "" or sntc[3] == "" or sntc[4] == ""if not bad:
         if sntc[5] != "0":
             return {"lat":[sntc[1], sntc[2]], "lon":[sntc[3], sntc[4]]}
     return v
