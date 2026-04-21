@@ -24,8 +24,10 @@ def update_loc(v):
 
 def update_tfr(m):
     tfr = nmeaparser.BAD_MSG
+    #bprint("start of update_tfr. m is "+str(m))
     if m is not None:
         tfrdata = nmeaparser.parse("TFR", otherinput = m)
+        #bprint("finished parsing")
         if tfrdata != nmeaparser.BAD_MSG:
             tfrlat = [tfrdata[1],tfrdata[2]]
             tfrlon = [tfrdata[3],tfrdata[4]]
@@ -78,6 +80,7 @@ il_dd = nmeaparser.dec_deg(init_loc["lat"],init_loc["lon"])
 cur_loc = {"lat":init_loc["lat"],"lon":init_loc["lon"]}
 cl_dd = nmeaparser.dec_deg(cur_loc["lat"],cur_loc["lon"])
 
+'''
 #error margin calculations
 rng = 20
 for i in range(rng):
@@ -93,7 +96,7 @@ for i in range(rng):
 ERROR_MARGIN = math.sqrt((1/(rng-1))*error_sum)
 #bprint("error margin"+str(ERROR_MARGIN))
 display.clear()
-
+'''
 #display listening intervals- A side for ch1(remote), B side for ch2(TX)
 display.set_pixel(0,itvl_ch1//30-1,9)
 display.set_pixel(4,itvl_ch2//30-1,9)
@@ -136,20 +139,23 @@ while end is False:
         #bprint("switch to "+str(ch))
         
     rad_msg = radio.receive()
-    #bprint(rad_msg)
+    bprint(rad_msg)
     #attempt to get current location, get radio msgs
     cur_loc = update_loc(cur_loc)
     #bprint(str(cur_loc))
-    
     if ch == 1:
-        if rad_msg == "1":
+        rad_msg = radio.receive()
+        if rad_msg == '1':
             volt = 40
-        if rad_msg == "0":
+        if rad_msg == '0':
             volt = 0
     if ch == 40:
+        rad_msg = radio.receive()
         if cur_loc is not None:
             cl_dd = nmeaparser.dec_deg(cur_loc["lat"],cur_loc["lon"])
+            #bprint('checking for tfr')
             update_tfr(rad_msg)
+            #bprint('done w check. end is '+str(end))
             for i in tfr_bank:
                 d = nmeaparser.hav_formula(i[0],cl_dd)
                 #bprint(d)
@@ -167,7 +173,6 @@ while end is False:
                     end = True
                     #maintfr = i
                     break
-
             '''if auton is True and maintfr is not None:
                 dtoborder = nmeaparser.hav_formula(maintfr[0],cl_dd)-(ERROR_MARGIN*2)-maintfr[1]
                 a = accelerometer.get_z() * 0.00980665
